@@ -22,36 +22,36 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install wheel setuptools buildozer cython virtualenv
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk wget
 
       - name: Set up Buildozer and Android SDK
         run: |
-          sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk wget aidl
-          pip install --upgrade buildozer
-          
           export ANDROID_HOME=$HOME/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
           mkdir -p $ANDROID_HOME/cmdline-tools
-          
+
           cd $ANDROID_HOME/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q commandlinetools-linux-11076708_latest.zip
           mv cmdline-tools latest
 
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
           echo "export PATH=$PATH" >> $GITHUB_ENV
 
       - name: Accept Android SDK Licenses & Install Required Tools
         run: |
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
           yes | sdkmanager --licenses || true
           sdkmanager --update
-          sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-36" "cmdline-tools;latest" "platforms;android-34" "build-tools;34.0.0" "platforms;android-30" "build-tools;30.0.3" "platforms;android-31" "build-tools;31.0.0"
+          sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34" "platforms;android-31" "platforms;android-30"
 
       - name: Build APK
         run: |
           export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/36.0.0:$PATH
+          export ANDROID_NDK=$ANDROID_HOME/ndk/25.1.8937393
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
           buildozer -v android debug
 
       - name: Upload APK
