@@ -47,7 +47,7 @@ jobs:
         run: |
           export ANDROID_HOME=$HOME/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
 
           # Delete old SDK folder if it exists (to prevent XML parse errors)
           rm -rf $ANDROID_HOME
@@ -61,7 +61,7 @@ jobs:
           rm sdk-tools.zip
 
           # Set environment variables for this session
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
 
           # Clear SDK cache to fix XML parse error
           rm -rf ~/.android/cache
@@ -71,9 +71,15 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;34.0.0" "cmdline-tools;latest" "ndk;25.1.8937393"
 
+          # Verify aidl installation
+          if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
+            echo "Error: aidl not found! Build-Tools might not have installed correctly."
+            exit 1
+          fi
+
       - name: Build APK
         run: |
-          export PATH=$HOME/.local/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          export PATH=$HOME/.local/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
           buildozer android debug
 
       - name: Upload APK Artifact
