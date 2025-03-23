@@ -33,7 +33,7 @@ jobs:
             autoconf automake cmake libtool \
             pkg-config libffi-dev libssl-dev \
             libjpeg-dev libpng-dev \
-            libltdl-dev libncurses5 \
+            libltdl-dev libncurses5-dev \
             openjdk-17-jdk 
 
           pip install --upgrade pip setuptools wheel cython virtualenv 
