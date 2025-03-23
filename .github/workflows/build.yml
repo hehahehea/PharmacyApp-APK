@@ -5,8 +5,8 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
+      branches:
+        - main
   workflow_dispatch:
 
 jobs:
@@ -60,8 +60,11 @@ jobs:
           mv cmdline-tools latest
           rm sdk-tools.zip
 
-          # Set environment variables for this session
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
+          # Ensure environment variables persist
+          echo "export ANDROID_HOME=$ANDROID_HOME" >> $HOME/.bashrc
+          echo "export ANDROID_SDK_ROOT=$ANDROID_HOME" >> $HOME/.bashrc
+          echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH" >> $HOME/.bashrc
+          source $HOME/.bashrc
 
           # Clear SDK cache to fix XML parse error
           rm -rf ~/.android/cache
@@ -71,25 +74,16 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;34.0.0" "cmdline-tools;latest" "ndk;25.1.8937393"
 
-          # Force install aidl
-          echo "Checking AIDL..."
-          if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
-            echo "AIDL not found! Reinstalling build-tools..."
-            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --uninstall "build-tools;34.0.0"
-            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "build-tools;34.0.0"
-          fi
+          # Set correct permissions
+          chmod +x $ANDROID_HOME/build-tools/34.0.0/aidl || true
 
-          # Verify AIDL installation
-          if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
-            echo "Error: AIDL still missing! Installing manually..."
-            wget -q https://dl.google.com/android/repository/build-tools_r34-linux.zip -O build-tools.zip
-            unzip -q build-tools.zip -d $ANDROID_HOME/build-tools/
-            rm build-tools.zip
-          fi
+          # Debugging: List files inside build-tools
+          echo "Checking AIDL location..."
+          ls -l $ANDROID_HOME/build-tools/34.0.0
 
-          # Final AIDL check
+          # Verify if AIDL exists
           if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
-            echo "Error: AIDL is still missing after manual installation."
+            echo "Error: AIDL is still missing!"
             exit 1
           fi
           echo "AIDL successfully installed."
