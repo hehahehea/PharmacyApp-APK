@@ -104,7 +104,7 @@ android.permissions = android.permission.INTERNET, android.permission.READ_EXTER
 android.api = 34
 
 # (str) Android SDK build-tools version to use
-android.build_tools_version = 34.0.0
+android.build_tools_version = 30.0.3
 
 
 # (int) Minimum API your APK / AAB will support.
