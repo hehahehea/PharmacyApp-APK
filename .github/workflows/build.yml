@@ -26,19 +26,24 @@ jobs:
       - name: Set up Buildozer and Android SDK
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk
+          sudo apt install -y git zip unzip openjdk-17-jdk wget
           pip install --upgrade buildozer
+          
           export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
           mkdir -p $ANDROID_HOME/cmdline-tools
+          
           cd $ANDROID_HOME/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          unzip commandlinetools-linux-10406996_latest.zip
+          unzip -q commandlinetools-linux-10406996_latest.zip
           mv cmdline-tools latest
+
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
+          echo "export PATH=$PATH" >> $GITHUB_ENV
 
       - name: Accept Android SDK Licenses & Install Required Tools
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
           yes | sdkmanager --licenses || true
           sdkmanager --update
           sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34" "cmdline-tools;latest" "platforms;android-30" "build-tools;30.0.3"
