@@ -71,11 +71,28 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;34.0.0" "cmdline-tools;latest" "ndk;25.1.8937393"
 
-          # Verify aidl installation
+          # Force install aidl
+          echo "Checking AIDL..."
           if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
-            echo "Error: aidl not found! Build-Tools might not have installed correctly."
+            echo "AIDL not found! Reinstalling build-tools..."
+            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --uninstall "build-tools;34.0.0"
+            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "build-tools;34.0.0"
+          fi
+
+          # Verify AIDL installation
+          if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
+            echo "Error: AIDL still missing! Installing manually..."
+            wget -q https://dl.google.com/android/repository/build-tools_r34-linux.zip -O build-tools.zip
+            unzip -q build-tools.zip -d $ANDROID_HOME/build-tools/
+            rm build-tools.zip
+          fi
+
+          # Final AIDL check
+          if [ ! -f "$ANDROID_HOME/build-tools/34.0.0/aidl" ]; then
+            echo "Error: AIDL is still missing after manual installation."
             exit 1
           fi
+          echo "AIDL successfully installed."
 
       - name: Build APK
         run: |
