@@ -3,12 +3,12 @@ name: Build Kivy APK
 on:
   push:
     branches:
-      - main  # Palitan kung ibang branch ang ginagamit mo
-  pull_request:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -18,30 +18,23 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
-          sudo apt update && sudo apt install -y \
-            python3-pip \
-            build-essential \
-            libssl-dev \
-            libffi-dev \
-            python3-dev \
-            openjdk-17-jdk \
-            unzip
-          pip install --upgrade pip
-          pip install buildozer cython virtualenv
+          python -m pip install --upgrade pip
+          pip install wheel setuptools buildozer cython virtualenv
 
-      - name: Initialize Buildozer
+      - name: Set up Buildozer
         run: |
-          buildozer init || echo "Buildozer already initialized"
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk
+          pip install --upgrade buildozer
 
       - name: Build APK
-        run: |
-          buildozer -v android debug
+        run: buildozer -v android debug
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: PharmacyApp-APK
+          name: built-apk
           path: bin/*.apk
           
