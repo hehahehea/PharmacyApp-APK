@@ -33,7 +33,7 @@ jobs:
             autoconf automake cmake libtool \
             pkg-config libffi-dev libssl-dev \
             libjpeg-dev libpng-dev \
-            libltdl-dev libncurses5-dev \
+            libltdl-dev libncurses5 \
             openjdk-17-jdk 
 
           pip install --upgrade pip setuptools wheel cython virtualenv 
@@ -49,21 +49,26 @@ jobs:
           export ANDROID_SDK_ROOT=$ANDROID_HOME
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
 
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
+          # Delete old SDK folder if it exists (to prevent XML parse errors)
+          rm -rf $ANDROID_HOME
+
+          # Recreate the SDK directory
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
+          cd $ANDROID_HOME/cmdline-tools/latest
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O sdk-tools.zip
           unzip -q sdk-tools.zip
-          mv cmdline-tools latest
           rm sdk-tools.zip
-          
-          echo "export ANDROID_HOME=$ANDROID_HOME" >> $HOME/.bashrc
-          echo "export ANDROID_SDK_ROOT=$ANDROID_HOME" >> $HOME/.bashrc
-          echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $HOME/.bashrc
-          source $HOME/.bashrc
 
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;36.0.0" "cmdline-tools;latest" "ndk;25.1.8937393"
+          # Ensure environment variables persist
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+
+          # Clear SDK cache to fix XML parse error
+          rm -rf ~/.android/cache
+
+          # Accept licenses and install required packages
+          yes | sdkmanager --licenses || true
+          sdkmanager --update
+          sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;34.0.0" "cmdline-tools;latest" "ndk;25.1.8937393"
 
       - name: Build APK
         run: |
