@@ -56,11 +56,14 @@ jobs:
           source venv/bin/activate
           pip install --upgrade python-for-android
 
-      - name: Initialize and Configure Buildozer
+      - name: Create missing directories
+        run: |
+          mkdir -p .buildozer/android/platform/python-for-android
+
+      - name: Force Clean Buildozer
         run: |
           source venv/bin/activate
-          buildozer init || true
-          rm -rf .buildozer  # Remove existing Buildozer files
+          rm -rf .buildozer  # Remove corrupted files
           buildozer android clean
           buildozer android update
 
