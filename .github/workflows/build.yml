@@ -33,7 +33,7 @@ jobs:
             autoconf automake cmake libtool \
             pkg-config libffi-dev libssl-dev \
             libjpeg-dev libpng-dev \
-            libltdl-dev libncurses5-dev  # <-- Fixed package
+            libltdl-dev libncurses5-dev 
 
           pip install --upgrade pip setuptools wheel cython virtualenv 
 
@@ -41,6 +41,10 @@ jobs:
         run: |
           pip install --upgrade buildozer
           python -m pip install --user --upgrade Cython virtualenv 
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | sdkmanager --licenses || true
 
       - name: Build APK
         run: |
