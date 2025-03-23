@@ -3,7 +3,7 @@ name: Build Kivy APK
 on:
   push:
     branches:
-      - main  # Palitan kung iba ang branch mo
+      - main  # Change if using another branch
 
 jobs:
   build:
@@ -46,10 +46,21 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager --install "platforms;android-31" "build-tools;31.0.0" "ndk;23.1.7779620"
 
-      - name: Initialize Buildozer
+      - name: Set Buildozer Environment Variables
+        run: |
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          echo "BUILDOZER_WARN_ON_ROOT=0" >> $GITHUB_ENV
+
+      - name: Install python-for-android
+        run: |
+          source venv/bin/activate
+          pip install --upgrade python-for-android
+
+      - name: Initialize and Configure Buildozer
         run: |
           source venv/bin/activate
           buildozer init || true
+          rm -rf .buildozer  # Force clean previous builds
           buildozer android clean
 
       - name: Build APK
