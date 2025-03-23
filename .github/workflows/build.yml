@@ -33,7 +33,8 @@ jobs:
             autoconf automake cmake libtool \
             pkg-config libffi-dev libssl-dev \
             libjpeg-dev libpng-dev \
-            libltdl-dev libncurses5-dev 
+            libltdl-dev libncurses5-dev \
+            openjdk-17-jdk 
 
           pip install --upgrade pip setuptools wheel cython virtualenv 
 
@@ -42,9 +43,17 @@ jobs:
           pip install --upgrade buildozer
           python -m pip install --user --upgrade Cython virtualenv 
 
-      - name: Accept Android SDK Licenses
+      - name: Install Android SDK & Accept Licenses
         run: |
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          mkdir -p $ANDROID_SDK_ROOT
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O sdk-tools.zip
+          unzip -q sdk-tools.zip -d $ANDROID_SDK_ROOT
+          rm sdk-tools.zip
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/bin:$ANDROID_SDK_ROOT/tools/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
           yes | sdkmanager --licenses || true
+          sdkmanager --update
+          sdkmanager "platform-tools" "platforms;android-31" "build-tools;36.0.0" "cmdline-tools;latest" "ndk;25.1.8937393"
 
       - name: Build APK
         run: |
