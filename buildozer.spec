@@ -103,6 +103,10 @@ android.permissions = android.permission.INTERNET, (name=android.permission.WRIT
 # (int) Target Android API, should be as high as possible.
 android.api = 34
 
+# (str) Android SDK build-tools version to use
+android.build_tools_version = 33.0.2
+
+
 # (int) Minimum API your APK / AAB will support.
 #android.minapi = 21
 
