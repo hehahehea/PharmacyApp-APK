@@ -3,60 +3,48 @@ name: Build Kivy APK
 on:
   push:
     branches:
-      - main
+      - main  # O palitan ng pangalan ng branch mo kung iba
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install wheel setuptools buildozer cython virtualenv
-          sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk wget
+          sudo apt update && sudo apt install -y python3-venv zip
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip setuptools wheel
+          pip install buildozer cython
 
-      - name: Set up Buildozer and Android SDK
+      - name: Install Android SDK & NDK
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          mkdir -p $ANDROID_HOME/cmdline-tools
+          sudo apt install -y openjdk-17-jdk
+          sudo apt install -y adb
+          echo "sdkmanager --install 'platforms;android-31' 'build-tools;31.0.0' 'ndk;23.1.7779620'" | bash
 
-          cd $ANDROID_HOME/cmdline-tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip -q commandlinetools-linux-11076708_latest.zip
-          mv cmdline-tools latest
-
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
-          echo "export PATH=$PATH" >> $GITHUB_ENV
-
-      - name: Accept Android SDK Licenses & Install Required Tools
+      - name: Initialize Buildozer
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
-          yes | sdkmanager --licenses || true
-          sdkmanager --update
-          sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34" "platforms;android-31" "platforms;android-30"
+          source venv/bin/activate
+          buildozer init || true
+          buildozer android clean
 
       - name: Build APK
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          export ANDROID_NDK=$ANDROID_HOME/ndk/25.1.8937393
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$PATH
+          source venv/bin/activate
           buildozer -v android debug
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: built-apk
+          name: Built-APK
           path: bin/*.apk
           
