@@ -1,80 +1,51 @@
-name: Build Kivy APK
+name: Build Kivy Android APK
 
 on:
   push:
     branches:
-      - main  # Change if using another branch
+      - main  # Change this if you're using a different branch
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    runs-on: ubuntu-latest  # Use Ubuntu because Buildozer works best on Linux
 
-      - name: Set up Python
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
-      - name: Install dependencies
+      - name: ⚡ Install System Dependencies
         run: |
-          sudo apt update && sudo apt install -y python3-venv zip
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip setuptools wheel
-          pip install buildozer cython
+          sudo apt update
+          sudo apt install -y python3-pip openjdk-17-jdk unzip zip liblz4-tool
 
-      - name: Install Android SDK & NDK
+      - name: 🔨 Install Buildozer & Dependencies
         run: |
-          sudo apt install -y openjdk-17-jdk unzip curl
-          
-          # Set Android SDK path
-          ANDROID_SDK_ROOT=$HOME/android-sdk
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-          cd $ANDROID_SDK_ROOT/cmdline-tools
-          
-          # Download and install command-line tools
-          curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip sdk-tools.zip
-          mv cmdline-tools latest
-          
-          # Export paths
-          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
-          
-          # Accept licenses and install required packages
-          yes | sdkmanager --licenses
-          sdkmanager --install "platforms;android-31" "build-tools;31.0.0" "ndk;23.1.7779620"
+          python -m pip install --upgrade pip
+          pip install buildozer cython virtualenv
 
-      - name: Set Buildozer Environment Variables
-        run: |
-          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
-          echo "BUILDOZER_WARN_ON_ROOT=0" >> $GITHUB_ENV
+      - name: ⏳ Cache Buildozer Directory (Speeds Up Future Builds)
+        uses: actions/cache@v3
+        with:
+          path: ~/.buildozer
+          key: buildozer-${{ runner.os }}-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            buildozer-${{ runner.os }}-
 
-      - name: Install python-for-android
+      - name: 📦 Build APK
         run: |
-          source venv/bin/activate
-          pip install --upgrade python-for-android
-
-      - name: Create missing directories
-        run: |
-          mkdir -p .buildozer/android/platform/python-for-android
-
-      - name: Force Clean Buildozer
-        run: |
-          source venv/bin/activate
-          rm -rf .buildozer  # Remove corrupted files
-          buildozer android clean
-          buildozer android update
-
-      - name: Build APK
-        run: |
-          source venv/bin/activate
           buildozer -v android debug
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: 📤 Upload APK as Artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: Built-APK
+          name: PharmacyApp-APK
           path: bin/*.apk
           
