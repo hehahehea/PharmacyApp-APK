@@ -60,8 +60,9 @@ jobs:
         run: |
           source venv/bin/activate
           buildozer init || true
-          rm -rf .buildozer  # Force clean previous builds
+          rm -rf .buildozer  # Remove existing Buildozer files
           buildozer android clean
+          buildozer android update
 
       - name: Build APK
         run: |
