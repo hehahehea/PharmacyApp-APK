@@ -3,7 +3,7 @@ name: Build Kivy APK
 on:
   push:
     branches:
-      - main  # O palitan ng pangalan ng branch mo kung iba
+      - main  # Palitan kung iba ang branch mo
 
 jobs:
   build:
@@ -27,9 +27,24 @@ jobs:
 
       - name: Install Android SDK & NDK
         run: |
-          sudo apt install -y openjdk-17-jdk
-          sudo apt install -y adb
-          echo "sdkmanager --install 'platforms;android-31' 'build-tools;31.0.0' 'ndk;23.1.7779620'" | bash
+          sudo apt install -y openjdk-17-jdk unzip curl
+          
+          # Set Android SDK path
+          ANDROID_SDK_ROOT=$HOME/android-sdk
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+          cd $ANDROID_SDK_ROOT/cmdline-tools
+          
+          # Download and install command-line tools
+          curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip sdk-tools.zip
+          mv cmdline-tools latest
+          
+          # Export paths
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+          
+          # Accept licenses and install required packages
+          yes | sdkmanager --licenses
+          sdkmanager --install "platforms;android-31" "build-tools;31.0.0" "ndk;23.1.7779620"
 
       - name: Initialize Buildozer
         run: |
